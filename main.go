@@ -3,6 +3,7 @@ package main
 import (
 	_ "embed"
 	"flag"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -39,7 +40,7 @@ func (sb *soundboard) play(input []byte) {
 
 func (sb *soundboard) gui() {
 	a := app.New()
-	w := a.NewWindow("go-soundboard")
+	w := a.NewWindow(fmt.Sprintf("minimal-soundboard V%s", a.Metadata().Version))
 	w.SetIcon(fyne.NewStaticResource("icon", icon))
 	ng := container.NewGridWithColumns(sb.columns)
 	keys := make([]string, 0, len(sb.content))
@@ -75,7 +76,9 @@ func main() {
 	}
 	dir, err := os.ReadDir(path)
 	if err != nil {
-		return
+		log.Printf("Error reading path os.ReadDir(%s): %v\n", path, err)
+		flag.PrintDefaults()
+		os.Exit(2)
 	}
 	sb.content = map[string][]byte{}
 	for _, entry := range dir {

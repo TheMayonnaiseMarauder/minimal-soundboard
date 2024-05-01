@@ -1,4 +1,4 @@
-# Go-Soundboard
+# Minimal-Soundboard
 
 ![.git-assets/ss.jpg](.git-assets/ss.jpg)
 
@@ -6,9 +6,9 @@
 * only supports 48khz mp3 files
 
 
-### cmd
+### Usage
 ```shell
-go-soundboard -d <Path to Audio files>
+soundboard -d <Path to Audio files>
 
   Args
     -c int
