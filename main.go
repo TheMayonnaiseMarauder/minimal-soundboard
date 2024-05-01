@@ -16,16 +16,19 @@ import (
 	"strings"
 )
 
-var (
-	//go:embed sb.ico
-	icon       []byte
+type soundboard struct {
 	otoContext *oto.Context
 	content    map[string][]byte
 	columns    int
+}
+
+var (
+	//go:embed sb.ico
+	icon []byte
 )
 
-func play(input []byte) {
-	ap := otoContext.NewPlayer()
+func (sb *soundboard) play(input []byte) {
+	ap := sb.otoContext.NewPlayer()
 	if _, err := ap.Write(input); err != nil {
 		log.Panicf("failed writing to player: %v", err)
 	}
@@ -34,21 +37,21 @@ func play(input []byte) {
 	}
 }
 
-func gui() {
+func (sb *soundboard) gui() {
 	a := app.New()
 	w := a.NewWindow("go-soundboard")
 	w.SetIcon(fyne.NewStaticResource("icon", icon))
-	ng := container.NewGridWithColumns(columns)
-	keys := make([]string, 0, len(content))
-	for k := range content {
+	ng := container.NewGridWithColumns(sb.columns)
+	keys := make([]string, 0, len(sb.content))
+	for k := range sb.content {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
 		sl := key
-		nb := content[key]
+		nb := sb.content[key]
 		butt := widget.NewButton(sl, func() {
-			go play(nb)
+			go sb.play(nb)
 		})
 		ng.Add(butt)
 	}
@@ -56,17 +59,15 @@ func gui() {
 	w.ShowAndRun()
 }
 
-func init() {
+func main() {
+	sb := soundboard{}
 	var otoErr error
-	otoContext, otoErr = oto.NewContext(48000, 2, 2, 8192)
+	sb.otoContext, otoErr = oto.NewContext(48000, 2, 2, 8192)
 	if otoErr != nil {
 		log.Panicf("Error creating oto.NewContext %v", otoErr)
 	}
-}
-
-func main() {
 	var path string
-	flag.IntVar(&columns, "c", 3, "columns")
+	flag.IntVar(&sb.columns, "c", 3, "columns")
 	flag.StringVar(&path, "d", "audio/", "dir of 48khz mp3 files")
 	flag.Parse()
 	if path[len(path)-1:] != "/" {
@@ -76,7 +77,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	content = map[string][]byte{}
+	sb.content = map[string][]byte{}
 	for _, entry := range dir {
 		en := entry.Name()
 		if !strings.Contains(en, ".mp3") {
@@ -90,9 +91,9 @@ func main() {
 		if err != nil {
 			log.Panicf("Error decoding file %s: %v", en, err)
 		}
-		if content[strings.Replace(en, ".mp3", "", 1)], err = io.ReadAll(decodedFile); err != nil {
+		if sb.content[strings.Replace(en, ".mp3", "", 1)], err = io.ReadAll(decodedFile); err != nil {
 			log.Panicf("Error reading decodedFile %s: %v", en, err)
 		}
 	}
-	gui()
+	sb.gui()
 }
