@@ -49,12 +49,9 @@ func (sb *soundboard) gui() {
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
-		sl := key
-		nb := sb.content[key]
-		butt := widget.NewButton(sl, func() {
-			go sb.play(nb)
-		})
-		ng.Add(butt)
+		ng.Add(widget.NewButton(key, func() {
+			go sb.play(sb.content[key])
+		}))
 	}
 	w.SetContent(ng)
 	w.ShowAndRun()
